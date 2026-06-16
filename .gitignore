@@ -1,5 +1,6 @@
 postgres-data/
 influxdb-data/
+guide/
 
 .env
 

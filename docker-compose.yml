@@ -10,6 +10,12 @@ services:
     volumes:
       - ./api:/app
       - /app/node_modules
+    env_file:
+      - ./api/.env
+    environment:
+      - DATABASE_HOST=postgres
+      - REDIS_HOST=redis
+      - INFLUXDB_URL=http://influxdb:8086
 
   worker:
     build:
@@ -19,6 +25,12 @@ services:
     volumes:
       - ./worker:/app
       - /app/node_modules
+    env_file:
+      - ./worker/.env
+    environment:
+      - DATABASE_HOST=postgres
+      - REDIS_HOST=redis
+      - INFLUXDB_URL=http://influxdb:8086
 
   postgres:
     image: postgres:17
@@ -46,3 +58,10 @@ services:
       - "8086:8086"
     volumes:
       - ./influxdb-data:/var/lib/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=adminpassword123
+      - DOCKER_INFLUXDB_INIT_ORG=my-plans
+      - DOCKER_INFLUXDB_INIT_BUCKET=monitoring
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=monitoring_admin_token_secret
