@@ -1,4 +1,31 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { AnalyticsService } from './analytics.service';
 
 @Controller('analytics')
-export class AnalyticsController {}
+export class AnalyticsController {
+  constructor(private readonly analyticsService: AnalyticsService) {}
+
+  @Get('projects/:projectId/latency')
+  getLatencyHistory(
+    @Param('projectId') projectId: string,
+    @Query('range') range?: string,
+  ) {
+    return this.analyticsService.getLatencyHistory(projectId, range);
+  }
+
+  @Get('projects/:projectId/uptime')
+  getUptimeStats(
+    @Param('projectId') projectId: string,
+    @Query('range') range?: string,
+  ) {
+    return this.analyticsService.getUptimeStats(projectId, range);
+  }
+
+  @Get('projects/:projectId/downtime-history')
+  getDowntimeHistory(
+    @Param('projectId') projectId: string,
+    @Query('range') range?: string,
+  ) {
+    return this.analyticsService.getDowntimeHistory(projectId, range);
+  }
+}
