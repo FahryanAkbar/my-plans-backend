@@ -1,0 +1,18 @@
+import { http, getProjectEndpoints } from '@/lib';
+import { LatencyComparisonResponse, AnalyticsRange } from '@/types/features';
+
+export const simulationService = {
+  async getLatencyComparison(
+    projectId: string,
+    range?: AnalyticsRange,
+  ): Promise<LatencyComparisonResponse[]> {
+    const projectApi = getProjectEndpoints(projectId);
+    const response = await http.get<LatencyComparisonResponse[]>(
+      projectApi.SIMULATION.LATENCY_COMPARISON,
+      { params: { range } }
+    );
+    return response.data;
+  },
+};
+
+export type SimulationService = typeof simulationService;
