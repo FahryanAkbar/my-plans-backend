@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 import { projectsService } from '@/services';
 import type { ApiError } from '@/lib';
@@ -11,6 +12,7 @@ export function useProject(projectId: string) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   const fetchProject = useCallback(async () => {
     if (!projectId) return;
@@ -20,6 +22,10 @@ export function useProject(projectId: string) {
       const data = await projectsService.findOneProject(projectId);
       setProject(data);
     } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.status === 404) {
+        setProject(null);
+        return;
+      }
       const apiErr = err as ApiError;
       const errMsg = apiErr?.message || 'Failed to fetch project';
       setError(errMsg);
@@ -38,12 +44,44 @@ export function useProject(projectId: string) {
       toast.success('Project details updated successfully');
       return updated;
     } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.status === 404) {
+        try {
+          // Auto-register project on backend and retry update
+          const newProject = await projectsService.createProject({
+            id: projectId,
+            name: data.name,
+          });
+          setProject(newProject);
+          toast.success('Project details updated successfully');
+          return newProject;
+        } catch (regErr) {
+          err = regErr;
+        }
+      }
       const apiErr = err as ApiError;
       const errMsg = apiErr?.message || 'Failed to update project';
       toast.error(errMsg);
       throw err;
     } finally {
       setIsUpdating(false);
+    }
+  }, [projectId]);
+
+  const removeProject = useCallback(async () => {
+    if (!projectId) return;
+    setIsDeleting(true);
+    try {
+      await projectsService.removeProject(projectId);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.status === 404) {
+        return;
+      }
+      const apiErr = err as ApiError;
+      const errMsg = apiErr?.message || 'Failed to delete project';
+      toast.error(errMsg);
+      throw err;
+    } finally {
+      setIsDeleting(false);
     }
   }, [projectId]);
 
@@ -56,7 +94,9 @@ export function useProject(projectId: string) {
     isLoading,
     error,
     isUpdating,
+    isDeleting,
     refetch: fetchProject,
     updateProject,
+    removeProject,
   };
 }

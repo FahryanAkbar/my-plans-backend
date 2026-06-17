@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
-import { useProjectConfigs } from '@/hooks/api/projects/use-project-configs';
-import type { MonitoringConfig } from '@/types/features/monitoring/projects';
+import { useProjectConfigs } from '@/hooks';
+import type { MonitoringConfig } from '@/types/features';
 
 interface UseMonitoringTabProps {
   projectId: string;
@@ -11,8 +11,6 @@ interface UseMonitoringTabProps {
 export function useMonitoringTab({ projectId, projectName }: UseMonitoringTabProps) {
   const {
     configs,
-    isLoading,
-    error,
     updateConfig,
     removeConfig,
     refetch,
