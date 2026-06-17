@@ -1,6 +1,5 @@
-import { http } from '@/lib/api/https';
-import { API_ENDPOINTS } from '@/lib/api/api-endpoints';
-import type { ApiMetadata, HealthStatus, WorkerStatus } from '@/types/features/monitoring/monitoring';
+import { API_ENDPOINTS, http } from '@/lib';
+import type { ApiMetadata, HealthStatus, WorkerStatus } from '@/types/features';
 
 export const monitoringService = {
   /**
