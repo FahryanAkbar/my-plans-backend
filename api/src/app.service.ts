@@ -4,7 +4,7 @@ export interface ApiMetadata {
   name: string;
   version: string;
   status: string;
-  uptime: number; 
+  uptime: number;
   timestamp: string;
 }
 
@@ -22,4 +22,3 @@ export class AppService {
     };
   }
 }
-
