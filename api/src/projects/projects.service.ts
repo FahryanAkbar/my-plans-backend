@@ -163,12 +163,10 @@ export class ProjectsService implements OnApplicationBootstrap {
 
   async removeConfig(projectId: string, configId: string): Promise<void> {
     const config = await this.findOneConfig(projectId, configId);
-    // Soft delete / archive
-    config.isArchived = true;
-    config.enabled = false;
-    await this.configRepository.save(config);
 
-    // Remove job from Queue
+    await this.configRepository.remove(config);
+
+    // Remove any scheduled job from Redis Queue
     await this.removeMonitoringJob(config.id);
   }
 
