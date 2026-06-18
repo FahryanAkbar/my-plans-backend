@@ -3,6 +3,8 @@ import type {
   LatencyDataPoint,
   UptimeHistoryResponse,
   UptimeTrendPoint,
+  LatencyComparisonResponse,
+  SimulationDataPoint,
 } from '@/types/features';
 
 export interface ChartResult {
@@ -101,6 +103,69 @@ const UPTIME_EMPTY: UptimeChartData = {
   minYDomain: 0,
   maxYDomain: 100,
 };
+
+export interface ComparisonChartPoint {
+  timestamp: number;       
+  latencyMs: number;      
+  googleTtfb: number;
+}
+
+export interface ComparisonChartData {
+  sortedData: ComparisonChartPoint[];
+  minTime: number;
+  maxTime: number;
+  ticks: number[];
+  maxYDomain: number;
+}
+
+const COMPARISON_EMPTY: ComparisonChartData = {
+  sortedData: [],
+  minTime: 0,
+  maxTime: 0,
+  ticks: [],
+  maxYDomain: 100,
+};
+
+export function normalizeComparisonData(
+  responses: LatencyComparisonResponse[],
+): ComparisonChartData {
+  if (!responses || responses.length === 0) return COMPARISON_EMPTY;
+
+  const points: ComparisonChartPoint[] = [];
+
+  responses.forEach((resp: LatencyComparisonResponse) => {
+    if (!Array.isArray(resp.series)) return;
+    resp.series.forEach((dp: SimulationDataPoint) => {
+      const ts = Date.parse(dp.time);
+      if (!isNaN(ts)) {
+        points.push({
+          timestamp: ts,
+          latencyMs: dp.realLatency,
+          googleTtfb: dp.predictedLatency,
+        });
+      }
+    });
+  });
+
+  if (points.length === 0) return COMPARISON_EMPTY;
+
+  points.sort((a, b) => a.timestamp - b.timestamp);
+
+  const timestamps = points.map((p) => p.timestamp);
+  const allLatencies = points.flatMap((p) => [p.latencyMs, p.googleTtfb]);
+  const minTime = Math.min(...timestamps);
+  const maxTime = Math.max(...timestamps);
+  const maxY = Math.max(...allLatencies);
+
+  return {
+    sortedData: points,
+    minTime,
+    maxTime,
+    ticks: buildTicks(minTime, maxTime),
+    maxYDomain: Math.max(Math.ceil(maxY / 50) * 50, 100),
+  };
+}
+
 
 export function normalizeUptimeData(
   responses: UptimeHistoryResponse[],
