@@ -8,6 +8,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { SimulationModule } from './simulation/simulation.module';
+import { BatchModule } from './batch/batch.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { SimulationModule } from './simulation/simulation.module';
     MonitoringModule,
     AnalyticsModule,
     SimulationModule,
+    BatchModule,
   ],
   controllers: [AppController],
   providers: [AppService],
