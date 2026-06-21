@@ -26,10 +26,12 @@ export interface UptimeChartsProps {
   className?: string;
   projectId: string;
   configId?: string;
+  range?: AnalyticsRange;
 }
 
-export function UptimeCharts({ className, projectId, configId }: UptimeChartsProps) {
-  const [range, setRange] = React.useState<AnalyticsRange>("24h");
+export function UptimeCharts({ className, projectId, configId, range: controlledRange }: UptimeChartsProps) {
+  const [internalRange, setInternalRange] = React.useState<AnalyticsRange>("24h");
+  const range = controlledRange ?? internalRange;
   const [activeConfigId, setActiveConfigId] = React.useState<string | null>(null);
   const { stats, isLoading, error } = useUptimeStats(projectId, range, configId);
   const { configs, isLoading: isConfigsLoading } = useProjectConfigs(projectId, undefined, configId);
@@ -106,21 +108,25 @@ export function UptimeCharts({ className, projectId, configId }: UptimeChartsPro
       />
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-2">
-          {UPTIME_RANGES.map((item) => (
-            <Button
-              key={item.value}
-              type="button"
-              size="sm"
-              variant={range === item.value ? "default" : "outline"}
-              className="h-8 min-w-12 rounded-lg px-3 text-xs font-semibold"
-              onClick={() => setRange(item.value)}
-              aria-pressed={range === item.value}
-            >
-              {item.label}
-            </Button>
-          ))}
-        </div>
+        {!controlledRange ? (
+          <div className="flex flex-wrap gap-2">
+            {UPTIME_RANGES.map((item) => (
+              <Button
+                key={item.value}
+                type="button"
+                size="sm"
+                variant={range === item.value ? "default" : "outline"}
+                className="h-8 min-w-12 rounded-lg px-3 text-xs font-semibold"
+                onClick={() => setInternalRange(item.value)}
+                aria-pressed={range === item.value}
+              >
+                {item.label}
+              </Button>
+            ))}
+          </div>
+        ) : (
+          <div />
+        )}
 
         {visibleStats.length > 1 ? (
           <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-muted-foreground sm:min-w-72">
