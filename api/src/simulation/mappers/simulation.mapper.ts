@@ -1,4 +1,10 @@
-import { InfluxBaseRow, InfluxPuppeteerRow, LatencyComparisonResult } from '../entities/simulation.entity';
+import {
+  InfluxBaseRow,
+  InfluxPuppeteerRow,
+  LatencyComparisonResult,
+  QosAnalysisResult,
+  QosInfluxRow,
+} from '../entities/simulation.entity';
 import { PROFILE_SPECS } from '../enums/simulation-range.enum';
 
 export function mapLatencyComparison(
@@ -45,6 +51,73 @@ export function mapLatencyComparison(
   }
 
   return result;
+}
+
+export function mapQosAnalysis(rows: QosInfluxRow[]): QosAnalysisResult[] {
+  const grouped: Record<
+    string,
+    {
+      configId: string;
+      url: string;
+      profiles: Record<string, { latency: number; isUp: number }>;
+    }
+  > = {};
+
+  for (const row of rows) {
+    grouped[row.configId] ??= {
+      configId: row.configId,
+      url: row.url,
+      profiles: {},
+    };
+
+    grouped[row.configId].profiles[row.networkProfile] = {
+      latency: Number((row.latency ?? 0).toFixed(2)),
+      isUp: Number(row.isUp ?? 0),
+    };
+  }
+
+  return Object.values(grouped).map(({ configId, url, profiles }) => {
+    const calculatedProfiles: Record<
+      string,
+      {
+        avgLatencyMs: number;
+        uptimePercent: number;
+        qosScore: number;
+      }
+    > = {};
+
+    for (const [profile, data] of Object.entries(profiles)) {
+      const avgLatencyMs = data.latency;
+      const uptimePercent = Number((data.isUp * 100).toFixed(2));
+      const latencyScore = Math.max(0, 100 - avgLatencyMs / 10);
+      const qosScore = Number(
+        (uptimePercent * 0.6 + latencyScore * 0.4).toFixed(1),
+      );
+
+      calculatedProfiles[profile] = { avgLatencyMs, uptimePercent, qosScore };
+    }
+
+    const profileEntries = Object.entries(calculatedProfiles);
+    let bestProfile = '';
+    let worstProfile = '';
+
+    if (profileEntries.length > 0) {
+      bestProfile = profileEntries.reduce((a, b) =>
+        b[1].qosScore > a[1].qosScore ? b : a,
+      )[0];
+      worstProfile = profileEntries.reduce((a, b) =>
+        b[1].qosScore < a[1].qosScore ? b : a,
+      )[0];
+    }
+
+    return {
+      configId,
+      url,
+      profiles: calculatedProfiles,
+      bestProfile,
+      worstProfile,
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------

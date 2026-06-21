@@ -25,3 +25,25 @@ export interface LatencyComparisonResult {
   networkProfile: string;
   series: LatencyComparisonPoint[];
 }
+
+export interface QosInfluxRow {
+  configId: string;
+  url: string;
+  networkProfile: string;
+  latency: number;
+  isUp: number;
+}
+
+export interface QosProfileMetrics {
+  avgLatencyMs: number;
+  uptimePercent: number;
+  qosScore: number;
+}
+
+export interface QosAnalysisResult {
+  configId: string;
+  url: string;
+  profiles: Record<string, QosProfileMetrics>;
+  bestProfile: string;
+  worstProfile: string;
+}

@@ -4,9 +4,15 @@ import {
   SIMULATION_RANGES,
   SimulationRange,
 } from './enums/simulation-range.enum';
-import { mapLatencyComparison } from './mappers/simulation.mapper';
+import {
+  mapLatencyComparison,
+  mapQosAnalysis,
+} from './mappers/simulation.mapper';
 import { SimulationInfluxRepository } from './repositories/simulation-influx.repository';
-import { LatencyComparisonResult } from './entities/simulation.entity';
+import {
+  LatencyComparisonResult,
+  QosAnalysisResult,
+} from './entities/simulation.entity';
 
 @Injectable()
 export class SimulationService {
@@ -30,6 +36,24 @@ export class SimulationService {
     ]);
 
     return mapLatencyComparison(puppeteerRows, baseRows);
+  }
+
+  async getQosAnalysis(
+    projectId: string,
+    range?: string,
+  ): Promise<QosAnalysisResult[]> {
+    const cleanRange = resolveRange(
+      range,
+      SIMULATION_RANGES,
+      DEFAULT_SIMULATION_RANGE,
+    );
+
+    const rows = await this.simulationRepository.getQosProfileRows(
+      projectId,
+      cleanRange,
+    );
+
+    return mapQosAnalysis(rows);
   }
 }
 

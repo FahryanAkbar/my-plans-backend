@@ -13,4 +13,12 @@ export class SimulationController {
   ) {
     return this.simulationService.getLatencyComparison(projectId, query.range);
   }
+
+  @Get('projects/:projectId/qos')
+  getQosAnalysis(
+    @Param('projectId') projectId: string,
+    @Query() query: SimulationRangeQueryDto,
+  ) {
+    return this.simulationService.getQosAnalysis(projectId, query.range);
+  }
 }
