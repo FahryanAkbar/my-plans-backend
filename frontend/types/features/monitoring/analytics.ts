@@ -50,3 +50,15 @@ export interface TimingBreakdownResponse {
   ttfb: number; // Time to First Byte (ms)
   download: number; // Resource transfer time (ms)
 }
+
+export interface NetworkFlowResponse {
+  configId: string;
+  url: string;
+  dnsTime: number;
+  tcpTime: number;
+  tlsTime: number;
+  ttfbTime: number;
+  downloadTime: number;
+  totalNetworkTime: number;
+  bottleneck: 'dnsTime' | 'tcpTime' | 'tlsTime' | 'ttfbTime' | 'downloadTime' | null;
+}

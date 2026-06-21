@@ -35,6 +35,7 @@ import {
   UptimeCharts,
   UptimeHistoryCharts,
   LatencyComparison,
+  NetworkFlow,
 } from "@/components/organisms";
 import { useProjectConfigs } from "@/hooks";
 import { ENV_BADGE, ENV_LABEL, NETWORK_LABEL } from "@/lib";
@@ -277,6 +278,7 @@ export function MonitoringWebsitesTemplate({
       {/* Analytics components with dynamic range prop */}
       <LatencyCharts projectId={projectId} configId={configId} range={range} />
       <TimingBreakdown projectId={projectId} configId={configId} range={range} />
+      <NetworkFlow projectId={projectId} configId={configId} range={range} />
       <UptimeCharts projectId={projectId} configId={configId} range={range} />
       <DowntimeHistory projectId={projectId} configId={configId} range={range} />
       <UptimeHistoryCharts projectId={projectId} configId={configId} range={range} />

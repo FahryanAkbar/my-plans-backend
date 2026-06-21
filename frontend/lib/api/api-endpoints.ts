@@ -35,6 +35,7 @@ export const getProjectEndpoints = (projectId: string) => ({
     DOWNTIME_HISTORY: analyticsService(`projects/${projectId}/downtime-history`),
     UPTIME_HISTORY: analyticsService(`projects/${projectId}/uptime-history`),
     TIMING_BREAKDOWN: analyticsService(`projects/${projectId}/timing-breakdown`),
+    NETWORK_FLOW: analyticsService(`projects/${projectId}/network-flow`),
   },
   SIMULATION: {
     LATENCY_COMPARISON: simulationService(`projects/${projectId}/latency-comparison`),
