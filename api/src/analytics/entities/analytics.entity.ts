@@ -86,3 +86,25 @@ export interface TimingBreakdownRow {
   _field: AnalyticsField;
   _value: number;
 }
+
+export interface NetworkFlowRow {
+  configId: string;
+  url: string;
+  dnsTime: number;
+  tcpTime: number;
+  tlsTime: number;
+  ttfbTime: number;
+  downloadTime: number;
+}
+
+export interface NetworkFlowAnalysis {
+  configId: string;
+  url: string;
+  dnsTime: number;
+  tcpTime: number;
+  tlsTime: number;
+  ttfbTime: number;
+  downloadTime: number;
+  totalNetworkTime: number;
+  bottleneck: 'dnsTime' | 'tcpTime' | 'tlsTime' | 'ttfbTime' | 'downloadTime';
+}

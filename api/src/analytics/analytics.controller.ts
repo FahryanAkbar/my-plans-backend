@@ -45,4 +45,12 @@ export class AnalyticsController {
   ) {
     return this.analyticsService.getTimingBreakdown(projectId, query.range);
   }
+
+  @Get('projects/:projectId/network-flow')
+  getNetworkFlowAnalysis(
+    @Param('projectId') projectId: string,
+    @Query() query: AnalyticsRangeQueryDto,
+  ) {
+    return this.analyticsService.getNetworkFlowAnalysis(projectId, query.range);
+  }
 }

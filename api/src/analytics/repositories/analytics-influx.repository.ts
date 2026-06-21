@@ -8,6 +8,7 @@ import {
 import {
   DowntimeHistoryRow,
   LatencyHistoryRow,
+  NetworkFlowRow,
   TimingBreakdownRow,
   UptimeHistoryRow,
   UptimeStatsRow,
@@ -99,6 +100,26 @@ export class AnalyticsInfluxRepository implements OnModuleInit {
         |> filter(fn: (r) => r["_field"] =~ /Time$/)
         |> mean()
         |> keep(columns: ["_field", "_value", "configId", "url"])
+    `);
+  }
+
+  getNetworkFlowAnalysis(projectId: string, range: AnalyticsRange) {
+    return this.queryApi.collectRows<NetworkFlowRow>(`
+      from(bucket: ${toFluxString(this.bucket)})
+        |> range(start: -${range})
+        |> filter(fn: (r) => r["_measurement"] == "http_checks")
+        |> filter(fn: (r) => r["projectId"] == ${toFluxString(projectId)})
+        |> filter(fn: (r) =>
+            r["_field"] == "dnsTime" or
+            r["_field"] == "tcpTime" or
+            r["_field"] == "tlsTime" or
+            r["_field"] == "ttfbTime" or
+            r["_field"] == "downloadTime"
+        )
+        |> group(columns: ["configId", "url", "_field"])
+        |> mean()
+        |> group(columns: ["configId", "url"])
+        |> pivot(rowKey: ["configId", "url"], columnKey: ["_field"], valueColumn: "_value")
     `);
   }
 

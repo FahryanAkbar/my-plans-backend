@@ -13,6 +13,7 @@ import {
 import {
   mapDowntimeHistory,
   mapLatencyHistory,
+  mapNetworkFlowAnalysis,
   mapTimingBreakdown,
   mapUptimeHistory,
   mapUptimeStats,
@@ -92,6 +93,19 @@ export class AnalyticsService {
     );
 
     return mapTimingBreakdown(rows);
+  }
+
+  async getNetworkFlowAnalysis(projectId: string, range?: string) {
+    const cleanRange = resolveRange(
+      range,
+      STANDARD_ANALYTICS_RANGES,
+      DEFAULT_TIMING_BREAKDOWN_RANGE,
+    );
+    const rows = await this.analyticsRepository.getNetworkFlowAnalysis(
+      projectId,
+      cleanRange,
+    );
+    return mapNetworkFlowAnalysis(rows);
   }
 }
 
