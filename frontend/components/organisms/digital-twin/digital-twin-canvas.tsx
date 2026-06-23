@@ -7,7 +7,6 @@ import {
   Activity, 
   RotateCcw, 
   Info, 
-  AlertTriangle, 
   CheckCircle2, 
   Wifi, 
   WifiOff, 
@@ -31,7 +30,7 @@ import {
   useNetworkTopology, 
   useDigitalTwin 
 } from "@/hooks";
-import { NodeType, NetworkNode, NetworkEdge, TwinObject } from "@/types/features";
+import { NodeType, NetworkNode, TwinObject } from "@/types/features";
 import { Button, Typography, Switch, Badge } from "@/components/atoms";
 
 interface DigitalTwinCanvasProps {
@@ -237,13 +236,13 @@ function Node3D({ node, twin, isSelected, onClick, showLabels, lowPowerMode, cen
 export function DigitalTwinCanvas({ projectId, className }: DigitalTwinCanvasProps) {
   // A. Fetch Static Topology Map & Live State
   const { nodes, edges, isLoading: isTopologyLoading } = useNetworkTopology(projectId);
-  const { state: twinState, isConnected, error: wsError } = useDigitalTwin(projectId);
+  const { state: twinState, isConnected } = useDigitalTwin(projectId);
 
   // B. Control States
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [showLabels, setShowLabels] = useState(true);
   const [lowPowerMode, setLowPowerMode] = useState(false);
-  const orbitRef = useRef<any>(null);
+  const orbitRef = useRef<typeof OrbitControls | null>(null);
 
   // C. Local Telemetry Log Mock
   const [mockLogs, setMockLogs] = useState<Array<{ time: string; msg: string; type: "info" | "warn" | "error" | "success" }>>([]);
@@ -305,6 +304,7 @@ export function DigitalTwinCanvas({ projectId, className }: DigitalTwinCanvasPro
         logMsg = `INFO: Traffic load balancing on [${twin.name}] - Connection recovering`;
       }
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMockLogs((prev) => [
         { time: timeStr, msg: logMsg, type: logType },
         ...prev.slice(0, 14), // Cap logs list size
@@ -312,9 +312,8 @@ export function DigitalTwinCanvas({ projectId, className }: DigitalTwinCanvasPro
     }
   }, [twinState]);
 
-  // Reset Camera View
   const handleResetCamera = () => {
-    if (orbitRef.current) {
+    if (orbitRef.current && 'reset' in orbitRef.current && typeof orbitRef.current.reset === 'function') {
       orbitRef.current.reset();
       toast.info("Camera view centered");
     }
@@ -334,7 +333,7 @@ export function DigitalTwinCanvas({ projectId, className }: DigitalTwinCanvasPro
   const isLoaded = !isTopologyLoading;
 
   return (
-    <div className={`relative w-full flex flex-col xl:flex-row gap-5 h-[720px] border border-border/40 rounded-2xl overflow-hidden bg-card/15 shadow-sm ${className}`}>
+    <div className={`relative w-full flex flex-col xl:flex-row gap-5 h-180 border border-border/40 rounded-2xl overflow-hidden bg-card/15 shadow-sm ${className}`}>
       
       {/* 1. LEFT TOOLBAR: NAVIGATION CONTROL & SETTINGS */}
       <div className="flex xl:flex-col gap-4 p-4 bg-muted/20 border-b xl:border-b-0 xl:border-r border-border/40 shrink-0 w-full xl:w-72 justify-between xl:justify-start">
