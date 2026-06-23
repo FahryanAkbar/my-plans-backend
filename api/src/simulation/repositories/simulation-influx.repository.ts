@@ -5,6 +5,7 @@ import { SimulationRange } from '../enums/simulation-range.enum';
 import {
   InfluxBaseRow,
   InfluxPuppeteerRow,
+  QosInfluxRow,
 } from '../entities/simulation.entity';
 
 @Injectable()
@@ -63,6 +64,33 @@ export class SimulationInfluxRepository implements OnModuleInit {
         |> keep(columns: ["_time", "_value", "configId"])
         |> sort(columns: ["_time"], desc: false)
     `);
+  }
+
+  getQosProfileRows(
+    projectId: string,
+    range: SimulationRange,
+  ): Promise<QosInfluxRow[]> {
+    return this.queryApi.collectRows<QosInfluxRow>(`
+    from(bucket: ${toFluxString(this.bucket)})
+      |> range(start: -${range})
+      |> filter(fn: (r) => r["_measurement"] == "http_checks")
+      |> filter(fn: (r) => r["projectId"] == ${toFluxString(projectId)})
+      |> filter(fn: (r) => r["_field"] == "latency" or r["_field"] == "isUp")
+      |> map(fn: (r) => ({
+          r with _value: if r._field == "isUp" then
+            (if r._value == true then 1.0 else 0.0)
+          else
+            float(v: r._value)
+      }))
+      |> group(columns: ["configId", "url", "networkProfile", "_field"])
+      |> mean()
+      |> group(columns: ["configId", "url", "networkProfile"])
+      |> pivot(
+          rowKey: ["configId", "url", "networkProfile"],
+          columnKey: ["_field"],
+          valueColumn: "_value"
+      )
+  `);
   }
 }
 

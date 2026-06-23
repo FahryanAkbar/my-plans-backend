@@ -1,4 +1,10 @@
-import { InfluxBaseRow, InfluxPuppeteerRow, LatencyComparisonResult } from '../entities/simulation.entity';
+import {
+  InfluxBaseRow,
+  InfluxPuppeteerRow,
+  LatencyComparisonResult,
+  QosAnalysisResult,
+  QosInfluxRow,
+} from '../entities/simulation.entity';
 import { PROFILE_SPECS } from '../enums/simulation-range.enum';
 
 export function mapLatencyComparison(
@@ -45,6 +51,113 @@ export function mapLatencyComparison(
   }
 
   return result;
+}
+
+export function mapQosAnalysis(rows: QosInfluxRow[]): QosAnalysisResult[] {
+  const grouped: Record<
+    string,
+    {
+      configId: string;
+      url: string;
+      profiles: Record<string, { latency: number; isUp: number }>;
+    }
+  > = {};
+
+  for (const row of rows) {
+    grouped[row.configId] ??= {
+      configId: row.configId,
+      url: row.url,
+      profiles: {},
+    };
+
+    grouped[row.configId].profiles[row.networkProfile] = {
+      latency: Number((row.latency ?? 0).toFixed(2)),
+      isUp: Number(row.isUp ?? 0),
+    };
+  }
+
+  return Object.values(grouped).map(({ configId, url, profiles }) => {
+    // Tentukan base latency (WiFi equivalent)
+    let baseLatency = 50; // fallback default
+    let baseIsUp = 1; // fallback default
+
+    if (profiles['WIFI']) {
+      baseLatency = profiles['WIFI'].latency;
+      baseIsUp = profiles['WIFI'].isUp;
+    } else {
+      const availableProfile = Object.keys(profiles)[0];
+      if (availableProfile) {
+        const spec = PROFILE_SPECS[availableProfile] ?? PROFILE_SPECS.WIFI;
+        baseLatency = Math.max(
+          0,
+          profiles[availableProfile].latency - spec.rtt,
+        );
+        baseIsUp = profiles[availableProfile].isUp;
+      }
+    }
+
+    const calculatedProfiles: Record<
+      string,
+      {
+        avgLatencyMs: number;
+        uptimePercent: number;
+        qosScore: number;
+      }
+    > = {};
+
+    const targetProfiles = ['WIFI', 'NETWORK_4G', 'NETWORK_3G'];
+    const allProfiles = Array.from(
+      new Set([...targetProfiles, ...Object.keys(profiles)]),
+    );
+
+    for (const profile of allProfiles) {
+      let avgLatencyMs: number;
+      let uptimePercent: number;
+
+      if (profiles[profile]) {
+        avgLatencyMs = profiles[profile].latency;
+        uptimePercent = Number((profiles[profile].isUp * 100).toFixed(2));
+      } else {
+        const spec = PROFILE_SPECS[profile] ?? PROFILE_SPECS.WIFI;
+        avgLatencyMs = Number((baseLatency + spec.rtt).toFixed(2));
+        uptimePercent = Number((baseIsUp * 100).toFixed(2));
+      }
+
+      const latencyScore = Math.max(0, 100 - avgLatencyMs / 50);
+      const qosScore = Number(
+        (uptimePercent * 0.6 + latencyScore * 0.4).toFixed(1),
+      );
+
+      calculatedProfiles[profile] = { avgLatencyMs, uptimePercent, qosScore };
+    }
+
+    const profileEntries = Object.entries(calculatedProfiles);
+    let bestProfile = '';
+    let worstProfile = '';
+
+    if (profileEntries.length > 0) {
+      bestProfile = profileEntries.reduce((a, b) => {
+        if (b[1].qosScore !== a[1].qosScore) {
+          return b[1].qosScore > a[1].qosScore ? b : a;
+        }
+        return b[1].avgLatencyMs < a[1].avgLatencyMs ? b : a;
+      })[0];
+      worstProfile = profileEntries.reduce((a, b) => {
+        if (b[1].qosScore !== a[1].qosScore) {
+          return b[1].qosScore < a[1].qosScore ? b : a;
+        }
+        return b[1].avgLatencyMs > a[1].avgLatencyMs ? b : a;
+      })[0];
+    }
+
+    return {
+      configId,
+      url,
+      profiles: calculatedProfiles,
+      bestProfile,
+      worstProfile,
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------

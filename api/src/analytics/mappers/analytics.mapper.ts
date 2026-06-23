@@ -4,6 +4,8 @@ import {
   DowntimeHistoryRow,
   LatencyHistory,
   LatencyHistoryRow,
+  NetworkFlowAnalysis,
+  NetworkFlowRow,
   TimingBreakdown,
   TimingBreakdownRow,
   UptimeHistory,
@@ -61,7 +63,9 @@ export function mapUptimeStats(rows: UptimeStatsRow[]): UptimeStats[] {
   }));
 }
 
-export function mapDowntimeHistory(rows: DowntimeHistoryRow[]): DowntimeEvent[] {
+export function mapDowntimeHistory(
+  rows: DowntimeHistoryRow[],
+): DowntimeEvent[] {
   const events: Record<string, DowntimeEvent> = {};
 
   for (const row of rows) {
@@ -108,7 +112,9 @@ export function mapUptimeHistory(rows: UptimeHistoryRow[]): UptimeHistory[] {
   return Object.values(grouped);
 }
 
-export function mapTimingBreakdown(rows: TimingBreakdownRow[]): TimingBreakdown[] {
+export function mapTimingBreakdown(
+  rows: TimingBreakdownRow[],
+): TimingBreakdown[] {
   const grouped: Record<string, TimingBreakdown> = {};
 
   for (const row of rows) {
@@ -137,4 +143,55 @@ export function mapTimingBreakdown(rows: TimingBreakdownRow[]): TimingBreakdown[
   }
 
   return Object.values(grouped);
+}
+
+export function mapNetworkFlowAnalysis(
+  rows: NetworkFlowRow[],
+): NetworkFlowAnalysis[] {
+  return rows.map((row) => {
+    const dns = round(row.dnsTime ?? 0);
+    const tcp = round(row.tcpTime ?? 0);
+    const tls = round(row.tlsTime ?? 0);
+    const ttfb = round(row.ttfbTime ?? 0);
+    const download = round(row.downloadTime ?? 0);
+
+    const totalNetworkTime = round(dns + tcp + tls + ttfb + download);
+
+    const timings: Record<
+      Exclude<NetworkFlowAnalysis['bottleneck'], null>,
+      number
+    > = {
+      dnsTime: dns,
+      tcpTime: tcp,
+      tlsTime: tls,
+      ttfbTime: ttfb,
+      downloadTime: download,
+    };
+
+    const bottleneck =
+      totalNetworkTime > 0
+        ? (
+            Object.entries(timings) as [
+              Exclude<NetworkFlowAnalysis['bottleneck'], null>,
+              number,
+            ][]
+          ).reduce((prev, curr) => (curr[1] > prev[1] ? curr : prev))[0]
+        : null;
+
+    return {
+      configId: row.configId,
+      url: row.url,
+      dnsTime: dns,
+      tcpTime: tcp,
+      tlsTime: tls,
+      ttfbTime: ttfb,
+      downloadTime: download,
+      totalNetworkTime,
+      bottleneck,
+    };
+  });
+}
+
+function round(value: number, decimals = 2): number {
+  return Number(value.toFixed(decimals));
 }

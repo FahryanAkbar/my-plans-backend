@@ -6,6 +6,7 @@ import type {
   DowntimeEvent,
   UptimeHistoryResponse,
   TimingBreakdownResponse,
+  NetworkFlowResponse,
 } from '@/types/features';
 
 export const analyticsService = {
@@ -70,6 +71,19 @@ export const analyticsService = {
     const projectApi = getProjectEndpoints(projectId);
     const response = await http.get<TimingBreakdownResponse[]>(
       projectApi.ANALYTICS.TIMING_BREAKDOWN,
+      { params: { range, configId } }
+    );
+    return response.data;
+  },
+
+  async getNetworkFlow(
+    projectId: string,
+    range?: AnalyticsRange,
+    configId?: string,
+  ): Promise<NetworkFlowResponse[]> {
+    const projectApi = getProjectEndpoints(projectId);
+    const response = await http.get<NetworkFlowResponse[]>(
+      projectApi.ANALYTICS.NETWORK_FLOW,
       { params: { range, configId } }
     );
     return response.data;

@@ -26,10 +26,12 @@ export interface DowntimeHistoryProps {
   className?: string;
   projectId: string;
   configId?: string;
+  range?: AnalyticsRange;
 }
 
-export function DowntimeHistory({ className, projectId, configId }: DowntimeHistoryProps) {
-  const [range, setRange] = React.useState<AnalyticsRange>("7d");
+export function DowntimeHistory({ className, projectId, configId, range: controlledRange }: DowntimeHistoryProps) {
+  const [internalRange, setInternalRange] = React.useState<AnalyticsRange>("7d");
+  const range = controlledRange ?? internalRange;
   const [activeConfigId, setActiveConfigId] = React.useState<string | null>(null);
   const { events, isLoading, error } = useDowntimeHistory(projectId, range, configId);
   const { configs, isLoading: isConfigsLoading } = useProjectConfigs(projectId, undefined, configId);
@@ -113,21 +115,25 @@ export function DowntimeHistory({ className, projectId, configId }: DowntimeHist
       />
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-2">
-          {DOWNTIME_RANGES.map((item) => (
-            <Button
-              key={item.value}
-              type="button"
-              size="sm"
-              variant={range === item.value ? "default" : "outline"}
-              className="h-8 min-w-12 rounded-lg px-3 text-xs font-semibold"
-              onClick={() => setRange(item.value)}
-              aria-pressed={range === item.value}
-            >
-              {item.label}
-            </Button>
-          ))}
-        </div>
+        {!controlledRange ? (
+          <div className="flex flex-wrap gap-2">
+            {DOWNTIME_RANGES.map((item) => (
+              <Button
+                key={item.value}
+                type="button"
+                size="sm"
+                variant={range === item.value ? "default" : "outline"}
+                className="h-8 min-w-12 rounded-lg px-3 text-xs font-semibold"
+                onClick={() => setInternalRange(item.value)}
+                aria-pressed={range === item.value}
+              >
+                {item.label}
+              </Button>
+            ))}
+          </div>
+        ) : (
+          <div />
+        )}
 
         {configOptions.length > 1 ? (
           <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-muted-foreground sm:min-w-72">

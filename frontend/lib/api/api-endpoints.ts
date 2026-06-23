@@ -6,6 +6,7 @@ const monitoringService = createServiceBuilder('/monitoring')
 const analyticsService = createServiceBuilder('/analytics')
 const simulationService = createServiceBuilder('/simulation')
 const batchService = createServiceBuilder('/batch')
+const networkTopologyService = createServiceBuilder('/network-topology')
 
 export const API_ENDPOINTS = {
   PROJECTS: {
@@ -35,11 +36,21 @@ export const getProjectEndpoints = (projectId: string) => ({
     DOWNTIME_HISTORY: analyticsService(`projects/${projectId}/downtime-history`),
     UPTIME_HISTORY: analyticsService(`projects/${projectId}/uptime-history`),
     TIMING_BREAKDOWN: analyticsService(`projects/${projectId}/timing-breakdown`),
+    NETWORK_FLOW: analyticsService(`projects/${projectId}/network-flow`),
   },
   SIMULATION: {
     LATENCY_COMPARISON: simulationService(`projects/${projectId}/latency-comparison`),
+    QOS: simulationService(`projects/${projectId}/qos`),
   },
   BATCH: {
     SUMMARIES: batchService(`summaries/${projectId}`),
+  },
+  NETWORK_TOPOLOGY: {
+    ROOT: networkTopologyService(`${projectId}`),
+    NODES: networkTopologyService(`${projectId}/nodes`),
+    NODE_DETAIL: (nodeId: string) => networkTopologyService(`${projectId}/nodes/${nodeId}`),
+    EDGES: networkTopologyService(`${projectId}/edges`),
+    EDGE_DETAIL: (edgeId: string) => networkTopologyService(`${projectId}/edges/${edgeId}`),
+    IMPACT: (configId: string) => networkTopologyService(`${projectId}/impact/${configId}`),
   }
 })

@@ -23,17 +23,19 @@ import {
 
 import { useLatencyComparison } from "@/hooks";
 import { normalizeComparisonData } from "@/lib";
+import type { AnalyticsRange } from "@/types/features";
 
 
 export interface LatencyComparisonProps {
   className?: string;
   projectId: string;
   configId?: string;
+  range?: AnalyticsRange;
 }
 
 
-export function LatencyComparison({ className, projectId, configId }: LatencyComparisonProps) {
-  const { data, isLoading, error } = useLatencyComparison(projectId, undefined, configId);
+export function LatencyComparison({ className, projectId, configId, range }: LatencyComparisonProps) {
+  const { data, isLoading, error } = useLatencyComparison(projectId, range, configId);
   const visibleData = React.useMemo(
     () => data.filter((item) => !configId || item.configId === configId),
     [configId, data],

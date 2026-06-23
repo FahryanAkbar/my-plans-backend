@@ -6,6 +6,7 @@ import {
   DEFAULT_TIMING_BREAKDOWN_RANGE,
   DEFAULT_UPTIME_HISTORY_RANGE,
   DEFAULT_UPTIME_STATS_RANGE,
+  DEFAULT_NETWORK_FLOW_RANGE,
   DOWNTIME_ANALYTICS_RANGES,
   STANDARD_ANALYTICS_RANGES,
   AnalyticsRange,
@@ -13,10 +14,12 @@ import {
 import {
   mapDowntimeHistory,
   mapLatencyHistory,
+  mapNetworkFlowAnalysis,
   mapTimingBreakdown,
   mapUptimeHistory,
   mapUptimeStats,
 } from './mappers/analytics.mapper';
+import { NetworkFlowAnalysis } from './entities/analytics.entity';
 
 @Injectable()
 export class AnalyticsService {
@@ -92,6 +95,22 @@ export class AnalyticsService {
     );
 
     return mapTimingBreakdown(rows);
+  }
+
+  async getNetworkFlowAnalysis(
+    projectId: string,
+    range?: string,
+  ): Promise<NetworkFlowAnalysis[]> {
+    const cleanRange = resolveRange(
+      range,
+      STANDARD_ANALYTICS_RANGES,
+      DEFAULT_NETWORK_FLOW_RANGE,
+    );
+    const rows = await this.analyticsRepository.getNetworkFlowAnalysis(
+      projectId,
+      cleanRange,
+    );
+    return mapNetworkFlowAnalysis(rows);
   }
 }
 
