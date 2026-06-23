@@ -96,10 +96,10 @@ services:
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME: admin
-      DOCKER_INFLUXDB_INIT_PASSWORD: GANTI_PASSWORD_INFLUX_ADMIN
+      DOCKER_INFLUXDB_INIT_PASSWORD: adminpassword123
       DOCKER_INFLUXDB_INIT_ORG: my-plans
       DOCKER_INFLUXDB_INIT_BUCKET: monitoring
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: GANTI_TOKEN_INFLUX_YANG_PANJANG
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: monitoring_admin_token_secret
     volumes:
       - influxdb-data:/var/lib/influxdb2
     healthcheck:
