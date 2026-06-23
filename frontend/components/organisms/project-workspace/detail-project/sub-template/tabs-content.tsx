@@ -12,6 +12,7 @@ import { InviteMemberPayload, InviteMembersResult } from '@/types/features'
 import { cn } from "@/lib";
 import { MonitoringTab } from "../../monitoring-website";
 import { TopologyCanvas } from "@/components/organisms/topology";
+import { DigitalTwinCanvas } from "@/components/organisms/digital-twin";
 
 
 interface TabContentProps {
@@ -253,6 +254,12 @@ export const ProjectTabsContent = ({
       {activeTab === "topology" && (
         <div className="w-full animate-in fade-in-50 duration-500">
           <TopologyCanvas projectId={project._id} />
+        </div>
+      )}
+
+      {activeTab === "digital-twin" && (
+        <div className="w-full animate-in fade-in-50 duration-500">
+          <DigitalTwinCanvas projectId={project._id} />
         </div>
       )}
 
