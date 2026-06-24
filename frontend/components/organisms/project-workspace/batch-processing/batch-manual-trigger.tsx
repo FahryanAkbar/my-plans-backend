@@ -1,66 +1,41 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Play } from "lucide-react";
-import { 
-  Button, 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardContent 
+import {
+  Button,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
 } from "@/components/atoms";
 import { format, subDays } from "date-fns";
+import { useBatchManualTrigger } from "@/hooks";
+import { TriggerBatchResponse } from "@/types/features";
 
 interface BatchManualTriggerProps {
   isTriggering: boolean;
-  triggerBatch: (payload?: { date?: string }) => Promise<any>;
+  triggerBatch: (payload?: { date?: string }) => Promise<TriggerBatchResponse>;
   refetch: () => void;
 }
 
-export function BatchManualTrigger({ 
-  isTriggering, 
-  triggerBatch, 
-  refetch 
+export function BatchManualTrigger({
+  isTriggering,
+  triggerBatch,
+  refetch,
 }: BatchManualTriggerProps) {
-  const [selectedDate, setSelectedDate] = useState<string>(
-    format(subDays(new Date(), 1), "yyyy-MM-dd") // Default: yesterday
-  );
-  const [triggerProgress, setTriggerProgress] = useState<number>(0);
-  const [activeJobId, setActiveJobId] = useState<string | null>(null);
-
-  const handleTriggerBatch = async () => {
-    if (isTriggering) return;
-    setTriggerProgress(5);
-    setActiveJobId(null);
-
-    // Progress bar simulation interval
-    const interval = setInterval(() => {
-      setTriggerProgress((prev) => {
-        if (prev >= 90) {
-          clearInterval(interval);
-          return 90;
-        }
-        return prev + Math.floor(Math.random() * 15) + 5;
-      });
-    }, 400);
-
-    try {
-      const res = await triggerBatch({ date: selectedDate });
-      clearInterval(interval);
-      setTriggerProgress(100);
-      if (res && res.jobId) {
-        setActiveJobId(res.jobId);
-      }
-      setTimeout(() => {
-        setTriggerProgress(0);
-        refetch();
-      }, 1500);
-    } catch (err) {
-      clearInterval(interval);
-      setTriggerProgress(0);
-    }
-  };
+  const {
+    selectedDate,
+    setSelectedDate,
+    triggerProgress,
+    activeJobId,
+    handleTriggerBatch,
+  } = useBatchManualTrigger({
+    isTriggering,
+    triggerBatch,
+    refetch,
+  });
 
   return (
     <Card className="lg:col-span-1 border border-border/30 bg-card/45 shadow-sm">
@@ -70,7 +45,8 @@ export function BatchManualTrigger({
           Manual Pipeline Trigger
         </CardTitle>
         <CardDescription className="text-xs">
-          Manually compile hourly InfluxDB latency data points into daily report summaries.
+          Manually compile hourly InfluxDB latency data points into daily report
+          summaries.
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-4 space-y-4">
@@ -96,8 +72,8 @@ export function BatchManualTrigger({
               <span>{triggerProgress}%</span>
             </div>
             <div className="w-full h-1.5 bg-muted/30 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-primary transition-all duration-300 ease-out shadow-[0_0_8px_rgba(67,97,238,0.5)]" 
+              <div
+                className="h-full bg-primary transition-all duration-300 ease-out shadow-[0_0_8px_rgba(67,97,238,0.5)]"
                 style={{ width: `${triggerProgress}%` }}
               />
             </div>

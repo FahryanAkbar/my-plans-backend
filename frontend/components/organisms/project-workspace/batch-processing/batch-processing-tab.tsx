@@ -26,7 +26,7 @@ export function BatchProcessingTab({ projectId }: BatchProcessingTabProps) {
     refetch,
     triggerBatch,
     kpis,
-    chartData
+    chartData,
   } = useBatchProcessingTab(projectId);
 
   return (
@@ -34,22 +34,31 @@ export function BatchProcessingTab({ projectId }: BatchProcessingTabProps) {
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-4">
         <div className="space-y-1">
-          <Typography variant="h6" className="text-lg font-bold flex items-center gap-2">
+          <Typography
+            variant="h6"
+            className="text-lg font-bold flex items-center gap-2"
+          >
             <Layers className="h-5 w-5 text-primary" />
             Batch Pipeline Processing
           </Typography>
-          <Typography variant="caption" className="text-xs text-muted-foreground/70 block">
-            Analyze 30-day long-term aggregated logs and trigger manual Big Data jobs.
+          <Typography
+            variant="caption"
+            className="text-xs text-muted-foreground/70 block"
+          >
+            Analyze 30-day long-term aggregated logs and trigger manual Big Data
+            jobs.
           </Typography>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={refetch} 
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={refetch}
           disabled={isLoading}
           className="self-start md:self-auto gap-2"
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`}
+          />
           Reload Data
         </Button>
       </div>
@@ -57,27 +66,21 @@ export function BatchProcessingTab({ projectId }: BatchProcessingTabProps) {
       {/* 2-COLUMN LAYOUT: Manual Run Panel & KPI Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* MANUAL TRIGGER */}
-        <BatchManualTrigger 
+        <BatchManualTrigger
           isTriggering={isTriggering}
           triggerBatch={triggerBatch}
           refetch={refetch}
         />
 
         {/* METRICS SUMMARY CARDS */}
-        <BatchSummaryCards 
-          kpis={kpis}
-          isLoading={isLoading}
-        />
+        <BatchSummaryCards kpis={kpis} isLoading={isLoading} />
       </div>
 
       {/* PERFORMANCE CHART */}
-      <BatchPerformanceChart 
-        chartData={chartData}
-        isLoading={isLoading}
-      />
+      <BatchPerformanceChart chartData={chartData} isLoading={isLoading} />
 
       {/* UPTIME CALENDAR GRID */}
-      <BatchUptimeGrid 
+      <BatchUptimeGrid
         configs={configs}
         summaries={summaries}
         isLoading={isLoading}
@@ -85,7 +88,7 @@ export function BatchProcessingTab({ projectId }: BatchProcessingTabProps) {
       />
 
       {/* HISTORICAL SUMMARY LOGS TABLE */}
-      <BatchReportsTable 
+      <BatchReportsTable
         summaries={summaries}
         configs={configs}
         isLoading={isLoading}
