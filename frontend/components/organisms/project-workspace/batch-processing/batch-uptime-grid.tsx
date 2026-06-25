@@ -11,7 +11,7 @@ import {
   Typography
 } from "@/components/atoms";
 import { format, subDays } from "date-fns";
-import type { MonitoringConfig, DailySummaryResponse } from "@/types/features";
+import { MonitoringConfig, DailySummaryResponse } from "@/types/features";
 
 interface BatchUptimeGridProps {
   configs: MonitoringConfig[];
@@ -53,7 +53,6 @@ export function BatchUptimeGrid({
             Daily status grids mapped for each active monitoring website configuration.
           </CardDescription>
         </div>
-        {/* Calendar Indicators */}
         <div className="flex items-center gap-3 text-[10px] font-semibold text-muted-foreground/75 bg-muted/50 dark:bg-slate-950/40 px-3 py-1.5 border border-border/30 dark:border-border/10 rounded-lg">
           <span>Worst</span>
           <span className="w-2.5 h-2.5 rounded-xs bg-red-500" />

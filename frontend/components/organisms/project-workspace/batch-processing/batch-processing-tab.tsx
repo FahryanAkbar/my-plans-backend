@@ -31,7 +31,6 @@ export function BatchProcessingTab({ projectId }: BatchProcessingTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-4">
         <div className="space-y-1">
           <Typography
@@ -63,23 +62,18 @@ export function BatchProcessingTab({ projectId }: BatchProcessingTabProps) {
         </Button>
       </div>
 
-      {/* 2-COLUMN LAYOUT: Manual Run Panel & KPI Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* MANUAL TRIGGER */}
         <BatchManualTrigger
           isTriggering={isTriggering}
           triggerBatch={triggerBatch}
           refetch={refetch}
         />
 
-        {/* METRICS SUMMARY CARDS */}
         <BatchSummaryCards kpis={kpis} isLoading={isLoading} />
       </div>
 
-      {/* PERFORMANCE CHART */}
       <BatchPerformanceChart chartData={chartData} isLoading={isLoading} />
 
-      {/* UPTIME CALENDAR GRID */}
       <BatchUptimeGrid
         configs={configs}
         summaries={summaries}
@@ -87,7 +81,6 @@ export function BatchProcessingTab({ projectId }: BatchProcessingTabProps) {
         isConfigsLoading={isConfigsLoading}
       />
 
-      {/* HISTORICAL SUMMARY LOGS TABLE */}
       <BatchReportsTable
         summaries={summaries}
         configs={configs}
