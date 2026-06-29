@@ -1,8 +1,11 @@
-import puppeteer, { type Browser, type Page } from 'puppeteer';
-import { config } from '../config.js';
-import type { NavigationTimings, PingResult } from '../types.js';
+import puppeteer, { type Browser, type Page } from "puppeteer";
+import { config } from "../config.js";
+import type { NavigationTimings, PingResult } from "../types.js";
 
-const THROTTLING_PROFILES: Record<string, { latency: number; download: number; upload: number }> = {
+const THROTTLING_PROFILES: Record<
+  string,
+  { latency: number; download: number; upload: number }
+> = {
   WIFI: { latency: 0, download: -1, upload: -1 },
   NETWORK_4G: {
     latency: 20,
@@ -27,7 +30,7 @@ export async function getBrowserInstance(): Promise<Browser> {
   if (!browserInstance) {
     const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     };
 
     if (config.puppeteer.executablePath) {
@@ -35,7 +38,7 @@ export async function getBrowserInstance(): Promise<Browser> {
     }
 
     browserInstance = await puppeteer.launch(launchOptions);
-    console.log('[Worker] Puppeteer browser initialized.');
+    console.log("[Worker] Puppeteer browser initialized.");
   }
 
   return browserInstance;
@@ -48,7 +51,7 @@ export async function closeBrowser(): Promise<void> {
 
   await browserInstance.close();
   browserInstance = null;
-  console.log('[Worker] Puppeteer browser instance closed.');
+  console.log("[Worker] Puppeteer browser instance closed.");
 }
 
 export async function pingTargetWithPuppeteer(
@@ -66,10 +69,12 @@ export async function pingTargetWithPuppeteer(
 
     const startTime = process.hrtime.bigint();
     const response = await page.goto(url, {
-      waitUntil: 'load',
+      waitUntil: "load",
       timeout: timeoutMs,
     });
-    const latency = Math.round(Number(process.hrtime.bigint() - startTime) / 1_000_000);
+    const latency = Math.round(
+      Number(process.hrtime.bigint() - startTime) / 1_000_000,
+    );
     const statusCode = response ? response.status() : 0;
 
     return {
@@ -81,19 +86,23 @@ export async function pingTargetWithPuppeteer(
     };
   } catch (error) {
     const err = error as Error & { name?: string };
-    const isTimeout = err.name === 'TimeoutError' || err.message?.toLowerCase().includes('timeout');
+    const isTimeout =
+      err.name === "TimeoutError" ||
+      err.message?.toLowerCase().includes("timeout");
 
     return {
       isUp: false,
       latency: timeoutMs,
       statusCode: 0,
-      errorMessage: isTimeout ? 'Request Timeout' : err.message || 'Unknown browser navigation error',
+      errorMessage: isTimeout
+        ? "Request Timeout"
+        : err.message || "Unknown browser navigation error",
       pageSize: 0,
     };
   } finally {
     if (page) {
       await page.close().catch((error: Error) => {
-        console.error('[Worker] Error closing Puppeteer page:', error.message);
+        console.error("[Worker] Error closing Puppeteer page:", error.message);
       });
     }
   }
@@ -104,11 +113,11 @@ async function emulateNetwork(page: Page, profileName: string): Promise<void> {
   const profile = THROTTLING_PROFILES[profileName] ?? THROTTLING_PROFILES.WIFI;
 
   if (!profile) {
-    throw new Error('Missing default WIFI throttling profile');
+    throw new Error("Missing default WIFI throttling profile");
   }
 
-  await client.send('Network.enable');
-  await client.send('Network.emulateNetworkConditions', {
+  await client.send("Network.enable");
+  await client.send("Network.emulateNetworkConditions", {
     offline: false,
     latency: profile.latency,
     downloadThroughput: profile.download,
@@ -118,26 +127,34 @@ async function emulateNetwork(page: Page, profileName: string): Promise<void> {
 
 async function extractTimings(page: Page): Promise<NavigationTimings | null> {
   try {
-    return await page.evaluate(() => {
-      const [t] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+    return await page.evaluate(() => { // masuk kedalam tab yang digunakan untuk menguji url target
+      const [t] = performance.getEntriesByType( // ambil semua data performance dan waktu dari tab tersebut 
+        "navigation",
+      ) as PerformanceNavigationTiming[];
       if (!t) {
         return null;
       }
 
-      const secureConnect = t.secureConnectionStart || 0;
+      const secureConnect = t.secureConnectionStart || 0; // untuk menentukan apakah koneksi aman atau tidak
       return {
         dns: Math.max(0, Math.round(t.domainLookupEnd - t.domainLookupStart)),
         tcp:
           secureConnect > 0
             ? Math.max(0, Math.round(secureConnect - t.connectStart))
             : Math.max(0, Math.round(t.connectEnd - t.connectStart)),
-        tls: secureConnect > 0 ? Math.max(0, Math.round(t.connectEnd - secureConnect)) : 0,
+        tls:
+          secureConnect > 0
+            ? Math.max(0, Math.round(t.connectEnd - secureConnect))
+            : 0,
         ttfb: Math.max(0, Math.round(t.responseStart - t.requestStart)),
-        download: Math.max(0, Math.round((t.loadEventEnd || t.responseEnd) - t.responseStart)),
+        download: Math.max(
+          0,
+          Math.round((t.loadEventEnd || t.responseEnd) - t.responseStart),
+        ),
       };
     });
   } catch (error) {
-    console.error('[Worker] Failed to extract performance timings:', error);
+    console.error("[Worker] Failed to extract performance timings:", error);
     return null;
   }
 }
@@ -145,13 +162,30 @@ async function extractTimings(page: Page): Promise<NavigationTimings | null> {
 async function extractPageSize(page: Page): Promise<number> {
   try {
     return await page.evaluate(() => {
-      const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
-      const resourceSize = resources.reduce((sum, resource) => sum + (resource.transferSize || 0), 0);
-      const [navigation] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+      const resources = performance.getEntriesByType( // untuk mendapatkan daftar semua file/sumber daya yang eksternal yang diunduh oleh website tsb
+        "resource",
+      ) as PerformanceResourceTiming[];
+      const resourceSize = resources.reduce(
+        (sum, resource) => sum + (resource.transferSize || 0),
+        0,
+      );
+      const [navigation] = performance.getEntriesByType( // untuk mengambil ukuran transfer data dari dokumen html tersebut
+        "navigation",
+      ) as PerformanceNavigationTiming[];
       return resourceSize + (navigation?.transferSize || 0);
     });
   } catch (error) {
-    console.error('[Worker] Failed to extract page size:', error);
+    console.error("[Worker] Failed to extract page size:", error);
     return 0;
   }
 }
+
+/*
+  yang dihasilkan dari puppeteer ini adalah:
+  1. Latency
+  2. dns
+  3. tcp
+  4. tls
+  5. ttfb
+  6. download
+*/
