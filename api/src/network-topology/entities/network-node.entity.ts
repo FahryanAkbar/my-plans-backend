@@ -37,7 +37,7 @@ export class NetworkNode {
   @Column({ nullable: true })
   configId?: string;
 
-  @ManyToOne(() => MonitoringConfig, { onDelete: 'SET NULL' })
+  @ManyToOne(() => MonitoringConfig, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'configId' })
   monitoringConfig?: MonitoringConfig;
 
